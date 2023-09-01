@@ -1062,58 +1062,6 @@ module SyntaxTree
 
     BREAKABLE_SPACE_SEPARATOR = BreakableSpaceSeparator.new.freeze
 
-    # Formats an array of multiple simple string literals into the %w syntax.
-    class QWordsFormatter
-      # [Args] the contents of the array
-      attr_reader :contents
-
-      def initialize(contents)
-        @contents = contents
-      end
-
-      def format(q)
-        q.text("%w[")
-        q.group do
-          q.indent do
-            q.breakable_empty
-            q.seplist(contents.parts, BREAKABLE_SPACE_SEPARATOR) do |part|
-              if part.is_a?(StringLiteral)
-                q.format(part.parts.first)
-              else
-                q.text(part.value[1..])
-              end
-            end
-          end
-          q.breakable_empty
-        end
-        q.text("]")
-      end
-    end
-
-    # Formats an array of multiple simple symbol literals into the %i syntax.
-    class QSymbolsFormatter
-      # [Args] the contents of the array
-      attr_reader :contents
-
-      def initialize(contents)
-        @contents = contents
-      end
-
-      def format(q)
-        q.text("%i[")
-        q.group do
-          q.indent do
-            q.breakable_empty
-            q.seplist(contents.parts, BREAKABLE_SPACE_SEPARATOR) do |part|
-              q.format(part.value)
-            end
-          end
-          q.breakable_empty
-        end
-        q.text("]")
-      end
-    end
-
     # This is a special formatter used if the array literal contains no values
     # but _does_ contain comments. In this case we do some special formatting to
     # make sure the comments gets indented properly.
@@ -1192,19 +1140,6 @@ module SyntaxTree
       lbracket = self.lbracket
       contents = self.contents
 
-      if lbracket.is_a?(LBracket) && lbracket.comments.empty? && contents &&
-           contents.comments.empty? && contents.parts.length > 1
-        if qwords?
-          QWordsFormatter.new(contents).format(q)
-          return
-        end
-
-        if qsymbols?
-          QSymbolsFormatter.new(contents).format(q)
-          return
-        end
-      end
-
       if empty_with_comments?
         EmptyWithCommentsFormatter.new(lbracket).format(q)
         return
@@ -1232,27 +1167,6 @@ module SyntaxTree
     end
 
     private
-
-    def qwords?
-      contents.parts.all? do |part|
-        case part
-        when StringLiteral
-          part.comments.empty? && part.parts.length == 1 &&
-            part.parts.first.is_a?(TStringContent) &&
-            !part.parts.first.value.match?(/[\s\[\]\\]/)
-        when CHAR
-          !part.value.match?(/[\[\]\\]/)
-        else
-          false
-        end
-      end
-    end
-
-    def qsymbols?
-      contents.parts.all? do |part|
-        part.is_a?(SymbolLiteral) && part.comments.empty?
-      end
-    end
 
     # If we have an empty array that contains only comments, then we're going
     # to do some special printing to ensure they get indented correctly.

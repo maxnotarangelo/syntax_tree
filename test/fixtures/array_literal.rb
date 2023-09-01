@@ -43,12 +43,12 @@ fooooooooooooooooo = 1
 ["foo"]
 %
 ["foo", "bar"]
--
+%
 %w[foo bar]
 %
 ["f", ?b]
 -
-%w[f b]
+["f", "b"]
 %
 [
   "foo",
@@ -56,7 +56,7 @@ fooooooooooooooooo = 1
 ]
 %
 ["foo", "bar"] # comment
--
+%
 %w[foo bar] # comment
 %
 ["foo", :bar]
@@ -72,7 +72,7 @@ fooooooooooooooooo = 1
 [:foo]
 %
 [:foo, :bar]
--
+%
 %i[foo bar]
 %
 [
@@ -81,7 +81,7 @@ fooooooooooooooooo = 1
 ]
 %
 [:foo, :bar] # comment
--
+%
 %i[foo bar] # comment
 %
 [:foo, "bar"]
